@@ -1,3 +1,4 @@
+library(data.table)
 MatlabDat <- R.matlab::readMat("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/FX.mat")$X
 types = c('Spot', 'Forward','Date', 'R', 'Q')
 date = as.Date(MatlabDat[ 1 ][[ 1 ]][[ 1 ]][[ 3 ]], origin = '0000-01-01')-1
