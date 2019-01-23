@@ -24,12 +24,13 @@ DataFilterer <- function(crcy_idx, type){
   return ( data.table::data.table( data ) )
 }
 
-SpotInterest <- function(crcy_idx, freq = 252){
-  #freq is the trading frequency (daily is 252)
+SpotInterest <- function(crcy_idx, h = 1){
+  #h is the reallocation time in months
+  freq <- round(252 / (h * 21))
   tabble <- data.table(DataFilterer(crcy_idx, 'Spot'),
                        R = DataFilterer(crcy_idx, "R")[[ 8 ]] / freq)
   return (tabble)
 }
-example = DataFilterer(crcy_idx = 3, type = 'Spot') #originally USDYPJ, but we need YPJUSD
+#example = DataFilterer(crcy_idx = 3, type = 'Spot') #originally USDYPJ, but we need YPJUSD
 #plot(example, type = 'l', main = ("USDYPJ"), ylab = 'Price', xlab = " ")
 
