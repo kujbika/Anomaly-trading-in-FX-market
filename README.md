@@ -1,4 +1,4 @@
-# Anomaly trading on FX factor portfolios: MOM, Carry and VOL
+# The cross-sectional profitability of anomaly trading on the fx market
 *__Marcell Kujbus, Financial Mathematician/Empirical Finance Researcher__* <br>
 My work is based on the precious work of Menkhoff (2012), Han (2013), and Marshall (2016). <br>
 In this research I investigate the rule of anomaly trading on the FX market (using Q10). The portfolios/factors are sorted by Momentum, 
