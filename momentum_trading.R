@@ -1,13 +1,21 @@
-source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.R")
-#in this subcode, I will show how to trade the Momentum anomaly dollar neutrally
-#based on Menkhoff(2012). 
+#The cross-sectional profitability of anomaly trading on the FX market#
+
+##############################################################
+#########           2019.01.26.                 ############## 
+#########     SECTION 1 - MOMENTUM ANOMALY      ##############
+#########          Marcell Kujbus               ##############
+##############################################################
+
+#in this section, I show how to trade the Momentum anomaly dollar neutrally based on Menkhoff(2012). 
 #Keywords: Momentum, Sorting, Equal-weighted portfolio, Dynamic trading, 
 #FX Market, currency excess returns
 
-#Based on Menkhoff(2012), I form 3 portfolios based on lagged returns
-#over the previous f = 1,3,6,9,12 months. These portfolios are held for
-#1,3,6,9,12 months. 1/3, 1/3, 1/3 weights will be assigned to the best
+#I form 3 portfolios based on lagged returns over the previous f = 1,3,6,9,12 months.
+#1/3, 1/3, 1/3 weights will be assigned to the best
 #3 crcies, whereas -1/3, -1/3, -1/3 will be assigned to the "losers".
+#These portfolios are held for h = 1,3,6,9,12 months.
+
+source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.R")
 Mom <- function(f, tseries){
   #Mom is a function that calculates MOM signals based on f.
   #f denotes months, and I calculate w working days
@@ -73,40 +81,8 @@ StrategyEvaluation_Momentum <- function(fh = c( 1, 1, TRUE, FALSE ) ){
 
 #print(r_Mom)
 
-##not important from here
 
-StrategyEvaluation2 <- function(fh){
-  #this is the actual evaluation of the MOM based strategy
-  #f is the lookback time in months (for calculating Momentum),
-  #whereas h is the portfolio reallocation frequency in months(holding period)
-  #in this part I assume no transaction costs.
-  f <- fh[1]
-  h <- fh[2]
-  trade <- Trade(f, h)
-  spotlogret <- trade[[1]][,c(1, seq(3,37,4))]
-  intrate_diff <- trade[[1]][,c(1,seq(4, 37, 4))]
-  FxReturn <- function(rowidx){
-    #this function only works with the proper configuration of the table
-    spot_return <- spotlogret[rowidx + 1 ,-1]
-    spot_return[is.na(spot_return) == T] = 0
-    colnames(spot_return) <- c('V1', 'V2', 'V3',
-                               'V4', 'V5', 'V6',
-                               'V7', 'V8', 'V9')
-    intrate_return <- intrate_diff[rowidx, -1]
-    intrate_return[is.na(intrate_return) == T] = 0
-    returns_each <- data.table(as.matrix(spot_return) + as.matrix(intrate_return))
-    return ( returns_each ) 
-  }
-  returns_each <- FxReturn( 1 )
-  for (i in 2 : nrow( trade[[ 1 ]]) ){
-    returns_each = returns_each %>% rbind( FxReturn( i - 1) )
-  }
-  portfolio_return <- data.table( dailyreturn = diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
-                                                       as.matrix( t ( returns_each ) ) ) )
-  portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( cumsum(portfolio_return ))
-  return (portfolio_return)
-}
-#r = StrategyEvaluation2()
+
 
 
 

@@ -1,8 +1,14 @@
-#######The cross-sectional profitability of anomaly trading on the FX market#####
-##Marcell Kujbus, marcellkujbus@gmail.com
+#The cross-sectional profitability of anomaly trading on the FX market#
 
-#This subcode includes all the relevant functions for calculating excess returns based on 
-#Momentum, Carry and Volatility. The work is based on Menhkoff et al(2012) and Han et al(2013).
+##############################################################
+#########           2019.01.26.                 ############## 
+#########        SECTION 0 - THE DATA           ##############
+#########          © Marcell Kujbus             ##############
+##############################################################
+
+#This subcode includes all the relevant functions for calculating excess returns based on the
+#anomalites: Momentum, Carry and Volatility. 
+#The work is based on Menhkoff et al(2012) and Han et al(2013).
 
 library(data.table)
 library(dplyr)

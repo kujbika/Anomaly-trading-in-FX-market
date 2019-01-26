@@ -1,4 +1,12 @@
-source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.R")
+#The cross-sectional profitability of anomaly trading on the FX market#
+
+##############################################################
+#########           2019.01.26.                 ############## 
+#########     SECTION 2 - CARRY ANOMALY         ##############
+#########         © Marcell Kujbus              ##############
+##############################################################
+
+
 #in this subcode, I will show how to trade the Carry anomaly dollar neutrally
 #Keywords: Carry, Sorting, Equal-weighted portfolio, Dynamic trading, 
 #FX market, Interest rate differential
@@ -10,11 +18,13 @@ source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.
 #These portfolios are held for 1,3,6,9,12 months. 
 #1/3, 1/3, 1/3 weights will be assigned to the best 3 currencies
 #whereas -1/3, -1/3, -1/3 will be assigned to the "losers".
+source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.R")
+
 
 TableMaker_Carry <- function(f = NA, h = 1){
-  #TableMaker is a function that has two outputs as a list:
+  #TableMaker_Carry is a function that has two outputs as a list:
   #the first is all the data for currencies (Date, Spotprice, logreturn, intrate differential) 
-  #the second consisting of just the interest rate differentials (agains US dollar)
+  #the second consisting of just the interest rate differentials (against US dollar)
   workingtable <- na.omit(SpotInterest( 1 ))
   for (i in 2:9) workingtable = left_join( workingtable, na.omit( SpotInterest( i ) ), by = 'Date')
   interest <- workingtable[ , c( 1, seq( 4, 28, 3 ) ) ]
@@ -22,7 +32,7 @@ TableMaker_Carry <- function(f = NA, h = 1){
   return ( list( workingtable, interest ) )
 }
 Trade_Carry <- function(f = NA, h = 1){
-  #The trade function has the base data table for currencies as its first output,
+  #The Trade_Carry function has the base data table for currencies as its first output,
   #and its second output is the weight allocation for all days based on Carry.
   #f and h is measured in months
   workingtable <- TableMaker_Carry(h)
@@ -44,7 +54,7 @@ StrategyEvaluation_Carry <- function(h0 = c( NA, 1, TRUE, FALSE ) ){
   h <- h0[2]
   with_interest <- h0[3] #boolean variable
   sharpe_bool <- h0[4] #boolean variable
-  trade <- Trade_Carry( h )
+  trade <- Trade_Carry( h = h )
   spotlogret <<- trade[[1]][,c(1, seq(3,28,3))]
   intrate_diff <<- trade[[1]][,c(1,seq(4, 28, 3))]
   returns_each <- FxReturn( 1, interest = with_interest )

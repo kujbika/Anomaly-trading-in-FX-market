@@ -1,4 +1,13 @@
-#based on Han et al(2013), I apply Moving Average trading rule to the long and short portfolio more sophisticatedly
+#The cross-sectional profitability of anomaly trading on the FX market#
+
+##############################################################
+#########           2019.01.26.                 ############## 
+######### SECTION4 - MOVING AVERAGE APPLICATION ##############
+#########         © Marcell Kujbus              ##############
+##############################################################
+
+#based on Han et al(2013), I apply Moving Average trading rule to the 
+#dynamics of the portfolio reallocation.
 ChooseAnomaly <- function(anomaly = 'Carry'){
   #choose witch anomaly should be handled with MA
   rm(list=setdiff(ls(), "anomaly"))

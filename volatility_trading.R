@@ -1,4 +1,11 @@
-source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.R")
+#The cross-sectional profitability of anomaly trading on the FX market#
+
+##############################################################
+#########           2019.01.26.                 ############## 
+#########     SECTION 3 - VOLATILITY ANOMALY    ##############
+#########         © Marcell Kujbus              ##############
+##############################################################
+
 #in this subcode, I will show how to trade based on Volatility sorting dollar neutrally
 #Keywords: Volatility sorting, Equal-weighted portfolio, Dynamic trading,
 #currency return, FX market 
@@ -10,6 +17,7 @@ source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.
 #These portfolios are held for h = 1,3,6,9,12 months. The lookback time is f = 1,3,6,9,12 months
 #1/3, 1/3, 1/3 weights will be assigned to the best 3 currencies
 #whereas -1/3, -1/3, -1/3 will be assigned to the "losers".
+source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.R")
 
 Vol <- function(f, tseries){
   #Vol is a function that calculates f rolling standard deviation for Spot prices.
@@ -22,7 +30,7 @@ Vol <- function(f, tseries){
   return (tseries)
 }
 TableMaker_Volatility <- function(f = 1, h = 1){
-  #TableMaker_Vol is a function that has two outputs as a list:
+  #TableMaker_Volatility is a function that has two outputs as a list:
   #the first is all the data for currencies (Date, Spotprice, intrate differentials, st deviation) 
   #the second consisting of just the standard deviations.
   #Note: this function is a little bit slow
@@ -33,7 +41,7 @@ TableMaker_Volatility <- function(f = 1, h = 1){
   return ( list( workingtable[ -(1 : (f * 21)), ], sdeviations ) )
 }
 Trade_Volatility <- function(f = 1, h = 1){
-  #The trade_vol() function has the base data table for currencies as an output,
+  #The Trade_Volatility() function has the base data table for currencies as an output,
   #and its second output is the weight allocation for all days.
   #f and h is measured in months
   workingtable <- TableMaker_Volatility(f, h)
@@ -74,7 +82,7 @@ StrategyEvaluation_Volatility <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   return (perannum)
 }
 #r_Vol = list(StrategyEvaluation_Vol()*100,
- #              StrategyEvaluation_Vol(c(3,1,T,F))*100,
-  #             StrategyEvaluation_Vol(c(6,1,T,F)) * 100,
-   #            StrategyEvaluation_Vol(c(12,1,T,F)) * 100)
+#               StrategyEvaluation_Vol(c(3,1,T,F))*100,
+#               StrategyEvaluation_Vol(c(6,1,T,F)) * 100,
+#               StrategyEvaluation_Vol(c(12,1,T,F)) * 100)
 #print(r_Vol)
