@@ -1,5 +1,5 @@
 source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.R")
-#in this subcode, I will show how to trade based on Volatility dollar neutrally
+#in this subcode, I will show how to trade based on Volatility sorting dollar neutrally
 #Keywords: Volatility sorting, Equal-weighted portfolio, Dynamic trading,
 #currency return, FX market 
 
@@ -12,7 +12,7 @@ source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.
 #whereas -1/3, -1/3, -1/3 will be assigned to the "losers".
 
 Vol <- function(f, tseries){
-  #Mom is a function that calculates MOM signals based on f.
+  #Vol is a function that calculates f rolling standard deviation for Spot prices.
   #f denotes months, and I calculate w working days
   f = f * 21
   tseries = na.omit(tseries)
@@ -21,12 +21,11 @@ Vol <- function(f, tseries){
   for (i in f : nrow(tseries)) tseries[i, ][["SD"]] = secunder(i) 
   return (tseries)
 }
-
 TableMaker_Vol <- function(f = 1, h = 1){
-  #TableMaker is a function that has two outputs as a list:
-  #the first is all the data for currencies (Date, Spotprice, log(1+return), 
-  #logreturn based on Spot, and MOM signals)
-  #the second consisting of just the MOM signals
+  #TableMaker_Vol is a function that has two outputs as a list:
+  #the first is all the data for currencies (Date, Spotprice, intrate differentials, st deviation) 
+  #the second consisting of just the standard deviations.
+  #Note: this function is a little bit slow
   workingtable <- Vol( f, SpotInterest( 1) )
   for (i in 2:9) workingtable = left_join( workingtable, Vol( f, SpotInterest( i) ), by = 'Date')
   sdeviations <- workingtable[ -(1 : (f * 21)), c( 1, seq( 5, 37, 4 ) ) ]
@@ -34,7 +33,7 @@ TableMaker_Vol <- function(f = 1, h = 1){
   return ( list( workingtable[ -(1 : (f * 21)), ], sdeviations ) )
 }
 Trade_Vol <- function(f = 1, h = 1){
-  #The trade function has the base data table for currencies as an output,
+  #The trade_vol() function has the base data table for currencies as an output,
   #and its second output is the weight allocation for all days.
   #f and h is measured in months
   workingtable <- TableMaker_Vol(f, h)
@@ -49,10 +48,9 @@ Trade_Vol <- function(f = 1, h = 1){
   weights = workingtable[[2]][ , 1] %>% cbind(weights[ 1 : nrow( workingtable[[ 2 ]]), ])
   return ( list( workingtable[[ 1 ]], weights ) )
 }
-
 StrategyEvaluation_Vol <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   #this is the actual evaluation of the MOM based strategy
-  #f is the lookback time in months (for calculating Momentum),
+  #f is the lookback time in months (for calculating sd),
   #whereas h is the portfolio reallocation frequency in months(holding period)
   #in this part I assume no transaction costs.
   f <- fh[1]
@@ -60,8 +58,8 @@ StrategyEvaluation_Vol <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   with_interest <- fh[3] #boolean variable
   sharpe_bool <- fh[4] #boolean variable
   trade <- Trade_Vol(f, h)
-  spotlogret <- trade[[1]][,c(1, seq(3,37,4))]
-  intrate_diff <- trade[[1]][,c(1,seq(4, 37, 4))]
+  spotlogret <<- trade[[1]][,c(1, seq(3,37,4))]
+  intrate_diff <<- trade[[1]][,c(1,seq(4, 37, 4))]
   
   returns_each <- FxReturn( 1, interest = with_interest )
   for (i in 2 : nrow( trade[[ 1 ]]) ){
@@ -75,4 +73,8 @@ StrategyEvaluation_Vol <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   if (sharpe_bool) return (sharpe)
   return (perannum)
 }
-StrategyEvaluation_Vol(c(12,1,T,F))*100
+r_Vol = list(StrategyEvaluation_Vol()*100,
+               StrategyEvaluation_Vol(c(3,1,T,F))*100,
+               StrategyEvaluation_Vol(c(6,1,T,F)) * 100,
+               StrategyEvaluation_Vol(c(12,1,T,F)) * 100)
+print(r_Vol)
