@@ -21,7 +21,7 @@ Vol <- function(f, tseries){
   for (i in f : nrow(tseries)) tseries[i, ][["SD"]] = secunder(i) 
   return (tseries)
 }
-TableMaker_Vol <- function(f = 1, h = 1){
+TableMaker_Volatility <- function(f = 1, h = 1){
   #TableMaker_Vol is a function that has two outputs as a list:
   #the first is all the data for currencies (Date, Spotprice, intrate differentials, st deviation) 
   #the second consisting of just the standard deviations.
@@ -32,11 +32,11 @@ TableMaker_Vol <- function(f = 1, h = 1){
   
   return ( list( workingtable[ -(1 : (f * 21)), ], sdeviations ) )
 }
-Trade_Vol <- function(f = 1, h = 1){
+Trade_Volatility <- function(f = 1, h = 1){
   #The trade_vol() function has the base data table for currencies as an output,
   #and its second output is the weight allocation for all days.
   #f and h is measured in months
-  workingtable <- TableMaker_Vol(f, h)
+  workingtable <- TableMaker_Volatility(f, h)
   weights <- WeightAssigner( workingtable[[ 2 ]][ 1, ]) %>%
     slice( rep( row_number( ), (h * 21 ) ) )
   realloc <- seq(1 + h * 21, nrow(workingtable[[ 2 ]]), h * 21)
@@ -48,7 +48,7 @@ Trade_Vol <- function(f = 1, h = 1){
   weights = workingtable[[2]][ , 1] %>% cbind(weights[ 1 : nrow( workingtable[[ 2 ]]), ])
   return ( list( workingtable[[ 1 ]], weights ) )
 }
-StrategyEvaluation_Vol <- function(fh = c( 1, 1, TRUE, FALSE ) ){
+StrategyEvaluation_Volatility <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   #this is the actual evaluation of the MOM based strategy
   #f is the lookback time in months (for calculating sd),
   #whereas h is the portfolio reallocation frequency in months(holding period)
@@ -57,7 +57,7 @@ StrategyEvaluation_Vol <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   h <- fh[2]
   with_interest <- fh[3] #boolean variable
   sharpe_bool <- fh[4] #boolean variable
-  trade <- Trade_Vol(f, h)
+  trade <- Trade_Volatility(f, h)
   spotlogret <<- trade[[1]][,c(1, seq(3,37,4))]
   intrate_diff <<- trade[[1]][,c(1,seq(4, 37, 4))]
   
@@ -73,8 +73,8 @@ StrategyEvaluation_Vol <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   if (sharpe_bool) return (sharpe)
   return (perannum)
 }
-r_Vol = list(StrategyEvaluation_Vol()*100,
-               StrategyEvaluation_Vol(c(3,1,T,F))*100,
-               StrategyEvaluation_Vol(c(6,1,T,F)) * 100,
-               StrategyEvaluation_Vol(c(12,1,T,F)) * 100)
-print(r_Vol)
+#r_Vol = list(StrategyEvaluation_Vol()*100,
+ #              StrategyEvaluation_Vol(c(3,1,T,F))*100,
+  #             StrategyEvaluation_Vol(c(6,1,T,F)) * 100,
+   #            StrategyEvaluation_Vol(c(12,1,T,F)) * 100)
+#print(r_Vol)

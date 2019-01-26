@@ -11,7 +11,7 @@ source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.
 #1/3, 1/3, 1/3 weights will be assigned to the best 3 currencies
 #whereas -1/3, -1/3, -1/3 will be assigned to the "losers".
 
-TableMaker_carry <- function(h = 1){
+TableMaker_Carry <- function(f = NA, h = 1){
   #TableMaker is a function that has two outputs as a list:
   #the first is all the data for currencies (Date, Spotprice, logreturn, intrate differential) 
   #the second consisting of just the interest rate differentials (agains US dollar)
@@ -21,11 +21,11 @@ TableMaker_carry <- function(h = 1){
   
   return ( list( workingtable, interest ) )
 }
-Trade_carry <- function(h = 1){
+Trade_Carry <- function(f = NA, h = 1){
   #The trade function has the base data table for currencies as its first output,
   #and its second output is the weight allocation for all days based on Carry.
   #f and h is measured in months
-  workingtable <- TableMaker_carry(h)
+  workingtable <- TableMaker_Carry(h)
   weights <- WeightAssigner( workingtable[[ 2 ]][ 1, ]) %>%
     slice( rep( row_number( ), (h * 21 ) ) )
   realloc <- seq(1 + h * 21, nrow(workingtable[[ 2 ]]), h * 21)
@@ -37,14 +37,14 @@ Trade_carry <- function(h = 1){
   weights = workingtable[[2]][ , 1] %>% cbind(weights[ 1 : nrow( workingtable[[ 2 ]]), ])
   return ( list( workingtable[[ 1 ]], weights ) )
 }
-StrategyEvaluation_carry <- function(h0 = c( 1, TRUE, FALSE ) ){
+StrategyEvaluation_Carry <- function(h0 = c( NA, 1, TRUE, FALSE ) ){
   #this is the actual evaluation of the Carry strategy
   #h is the portfolio reallocation frequency in months(holding period)
   #in this part I assume no transaction costs.
-  h <- h0[1]
-  with_interest <- h0[2] #boolean variable
-  sharpe_bool <- h0[3] #boolean variable
-  trade <- Trade_carry( h )
+  h <- h0[2]
+  with_interest <- h0[3] #boolean variable
+  sharpe_bool <- h0[4] #boolean variable
+  trade <- Trade_Carry( h )
   spotlogret <<- trade[[1]][,c(1, seq(3,28,3))]
   intrate_diff <<- trade[[1]][,c(1,seq(4, 28, 3))]
   returns_each <- FxReturn( 1, interest = with_interest )
@@ -60,8 +60,8 @@ StrategyEvaluation_carry <- function(h0 = c( 1, TRUE, FALSE ) ){
   return (perannum)
 }
 
-r_carry = list(StrategyEvaluation_carry()*100,
-         StrategyEvaluation_carry(c(3,T,F))*100,
-         StrategyEvaluation_carry(c(6,T,F)) * 100,
-         StrategyEvaluation_carry(c(12,T,F)) * 100)
-print(r_carry)
+#r_carry = list(StrategyEvaluation_carry()*100,
+ #        StrategyEvaluation_carry(c(3,T,F))*100,
+  #       StrategyEvaluation_carry(c(6,T,F)) * 100,
+   #      StrategyEvaluation_carry(c(12,T,F)) * 100)
+#print(r_carry)
