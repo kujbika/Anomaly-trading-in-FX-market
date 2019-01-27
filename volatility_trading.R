@@ -36,7 +36,8 @@ TableMaker_Volatility <- function(f = 1, h = 1){
   #Note: this function is a little bit slow
   workingtable <- Vol( f, SpotInterest( 1) )
   for (i in 2:9) workingtable = left_join( workingtable, Vol( f, SpotInterest( i) ), by = 'Date')
-  sdeviations <- workingtable[ -(1 : (f * 21)), c( 1, seq( 5, 37, 4 ) ) ]
+  sdev_idx <- c("Date", select_vars(names(workingtable), starts_with('SD', ignore.case = TRUE)))
+  sdeviations <- workingtable[ -(1 : (f * 21)), sdev_idx ]
   
   return ( list( workingtable[ -(1 : (f * 21)), ], sdeviations ) )
 }
@@ -61,18 +62,10 @@ StrategyEvaluation_Volatility <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   #f is the lookback time in months (for calculating sd),
   #whereas h is the portfolio reallocation frequency in months(holding period)
   #in this part I assume no transaction costs.
-  f <- fh[1]
-  h <- fh[2]
-  with_interest <- fh[3] #boolean variable
-  sharpe_bool <- fh[4] #boolean variable
+  f <- fh[1]; h <- fh[2]; with_interest <- fh[3]; sharpe_bool <- fh[4] 
   trade <- Trade_Volatility(f, h)
-  spotlogret <<- trade[[1]][,c(1, seq(3,37,4))]
-  intrate_diff <<- trade[[1]][,c(1,seq(4, 37, 4))]
-  
-  returns_each <- FxReturn( 1, interest = with_interest )
-  for (i in 2 : nrow( trade[[ 1 ]]) ){
-    returns_each = returns_each %>% rbind( FxReturn( i - 1, interest = with_interest ) )
-  }
+  returns <- select_vars(names(trade[[1]]), starts_with('Exc', ignore.case = TRUE))
+  returns_each <- trade[[1]][,returns] %>% mutate_all( funs(if_else(is.na(.), 0, .)))
   portfolio_return <- data.table( dailyreturn = diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
                                                        as.matrix( t ( returns_each ) ) ) )
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
@@ -87,12 +80,8 @@ StrategyEvaluation_plot_Volatility <- function(f = 1, h = 1){
   #whereas h is the portfolio reallocation frequency in months(holding period)
   #in this part I assume no transaction costs.
   trade <- Trade_Volatility(f, h)
-  spotlogret <<- trade[[1]][,c(1, seq(3,37,4))]
-  intrate_diff <<- trade[[1]][,c(1,seq(4, 37, 4))]
-  returns_each <- FxReturn( 1 )
-  for (i in 2 : nrow( trade[[ 1 ]]) ){
-    returns_each = returns_each %>% rbind( FxReturn( i - 1 ) )
-  }
+  returns <- select_vars(names(trade[[1]]), starts_with('Exc', ignore.case = TRUE))
+  returns_each <- trade[[1]][,returns] %>% mutate_all( funs(if_else(is.na(.), 0, .)))
   portfolio_return <- data.table( dailyreturn = 100 * cumsum(diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
                                                        as.matrix( t ( returns_each ) ) ) ) )
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )

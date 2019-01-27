@@ -48,33 +48,27 @@ SpotInterest <- function( crcy_idx){
   q <- MDat(crcy_idx, 5)/ 252
   spot <- SpotForwardFilterer(crcy_idx, 'Spot') %>% 
           mutate(logSpotRet = c(0,diff(log(Spot))))
-  if (prime_crc == 'USD') interest = (r - q)[,7] 
-  interest = (q - r)[,7]
+  if (prime_crc == 'USD') interestt = (r - q)[,7] 
+  interestt = (q - r)[,7]
   #this multiplying with -1 happens because sometimes the us dollar is the base
   #currency, and sometimes the other.
-  return (data.table(spot, interest))
+  excessret = FxReturn(spotlogret = spot[,3], intrate_diff = interestt)
+  return (data.table(spot, interestt, Excessreturn = excessret))
 }
-SpotFw <- function(crcy_idx){
-  #if the CIP holds, then return_t+1 ~ logforward_t - logspot_t+1
-  #This function is not so relevant in the following research.
-  spot <- SpotForwardFilterer(crcy_idx, 'Spot') %>% mutate(logSpot = log(Spot))
-  forward <- SpotForwardFilterer(crcy_idx, 'Forward')[,4] %>% 
-    mutate(logForward = log(V4))
-  tabble <- data.table(Date = spot[,1], Spot = spot$logSpot,logForward =forward$logForward)
- return (tabble) 
-}
-FxReturn <- function(rowidx, interest = TRUE){
+
+FxReturn <- function(spotlogret, intrate_diff, interest = TRUE){
   #this function only works with the proper configuration of the table
   #see e.g:StrategyEvaluation function on momentum_trading.R
-  spot_return <- spotlogret[rowidx + 1 ,-1]
-  spot_return[is.na(spot_return) == T] = 0
-  colnames(spot_return) <- c('V1', 'V2', 'V3',
-                             'V4', 'V5', 'V6',
-                             'V7', 'V8', 'V9')
-  if (interest == FALSE) return (spot_return)
-  intrate_return <- intrate_diff[rowidx, -1]
-  intrate_return[is.na(intrate_return) == T] = 0
-  returns_each <- data.table(as.matrix(spot_return) + as.matrix(intrate_return))
+  nc <- ncol(spotlogret)
+  returns_each = data.table(as.matrix(spotlogret[2])+as.matrix(intrate_diff[1]))
+  for (rowidx in 2 : length(spotlogret)){
+    spot_return <- spotlogret[rowidx + 1]
+    spot_return[is.na(spot_return) == T] = 0
+    if (interest == FALSE) return (rbindlist(list(returns_each,spot_return)))
+    intrate_return <- intrate_diff[rowidx]
+    intrate_return[is.na(intrate_return) == T] = 0
+    asofday <- data.table(as.matrix(spot_return) + as.matrix(intrate_return))
+    returns_each <- rbindlist(list(returns_each, asofday))}
   return ( returns_each ) 
 }
 WeightAssigner <- function(rowfromtable){
