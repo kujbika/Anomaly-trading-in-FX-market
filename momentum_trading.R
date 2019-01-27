@@ -73,6 +73,23 @@ StrategyEvaluation_Momentum <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   if (sharpe_bool) return (sharpe)
   return (perannum)
 }
+StrategyEvaluation_plot_Momentum <- function(f = 1, h = 1){
+  #this is the actual evaluation of the MOM based strategy
+  #f is the lookback time in months (for calculating sd),
+  #whereas h is the portfolio reallocation frequency in months(holding period)
+  #in this part I assume no transaction costs.
+  trade <- Trade_Momentum(f, h)
+  spotlogret <<- trade[[1]][,c(1, seq(3,37,4))]
+  intrate_diff <<- trade[[1]][,c(1,seq(4, 37, 4))]
+  returns_each <- FxReturn( 1 )
+  for (i in 2 : nrow( trade[[ 1 ]]) ){
+    returns_each = returns_each %>% rbind( FxReturn( i - 1 ) )
+  }
+  portfolio_return <- data.table( dailyreturn = 100 * cumsum(diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
+                                                              as.matrix( t ( returns_each ) ) ) ) )
+  portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
+  return (portfolio_return)
+}
 
 #r_Mom = list(StrategyEvaluation_Mom()*100,
              #StrategyEvaluation_Mom(c(3,1,T,F))*100,
