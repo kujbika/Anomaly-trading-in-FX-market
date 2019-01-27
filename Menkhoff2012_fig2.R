@@ -34,9 +34,9 @@ p <- ggplot(trajectory) + geom_line( aes(x = Date, y = `(1,1)`), color = 'blue')
   geom_line( aes(x = Date, y = `(12,1)` ), color = "black")+
   labs(y = 'Cumulative excess return (in %)', x = ' ')+
   scale_x_date(date_breaks = "30 months")+ggthemes::theme_hc()+
-  annotate('text', x = as.Date('2016-12-01'), y = 68, label = 'MOM(1,1)', colour = 'blue')+
-  annotate('text', x = as.Date('2014-11-01'), y = 60, label = 'MOM(1,6)', colour = 'red')+
-  annotate('text', x = as.Date('2015-12-01'), y = 28, label = 'MOM(1,12)', colour = 'black')+
+  annotate('text', x = as.Date('2016-12-01'), y = 68, label = 'Carry(1)', fontface = 2,colour = 'blue')+
+  annotate('text', x = as.Date('2015-02-01'), y = 28, label = 'Carry(12)', fontface = 2,colour = 'black')+
+  annotate('text', x = as.Date('2015-02-01'), y = 60, label = 'Carry(6)', fontface = 2,colour = 'red')+
   annotate('rect', xmin = as.Date("2007-11-01"), xmax = as.Date('2010-01-01'),
-   ymin = -10, ymax = 75, alpha = .2)
+   ymin = -10, ymax = 71, alpha = .2)
 print(p)

@@ -16,10 +16,6 @@ ChooseAnomaly <- function(anomaly = 'Carry'){
   }else if (anomaly == 'Volatility'){source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/volatility_trading.R")
 }
 }
-anomaly = "Volatility"
-ChooseAnomaly(anomaly)
-
-
 #I apply MA portfolio-wise as Han et al(2013) does.
 MA_assigner <- function(lag = 10, f = 1, h = 1){
   trade <- do.call( paste0( 'Trade_', anomaly ), list( f, h ) )
@@ -49,7 +45,7 @@ MA_trade <- function(lag = 10, f = 1, h = 1){
     winners_ma <- sum(ma[as.matrix(idx_winners)[i,]], na.rm = T)
     columns_win = Spots[as.matrix(idx_winners)[i,]]
     winners_spot <- sum(data.all[i, columns_win], na.rm =T)
-    if (winners_spot < winners_ma) weights[i,] = 0
+    if (winners_spot < winners_ma) weights[i,2:10] = 0
     }
   return (list(data.all, weights))
 }
@@ -70,4 +66,19 @@ StrategyEvaluation_MA <- function(lag = 10, f = 1, h = 1){
   perannum <- sum( portfolio_return$dailyreturn, na.rm = T ) / nrow( portfolio_return ) * 252
   return (perannum)
 }
-StrategyEvaluation_MA()
+
+StrategyEvaluationplot_MA <- function(lag = 10, f = 1, h = 1){
+  trade <- MA_trade(lag, f, h)
+  logSpots <- c("Date", select_vars(names(trade[[1]]), starts_with('log', ignore.case = TRUE)))
+  spotlogret <<- trade[[1]][,logSpots]
+  intRates <- c("Date", select_vars(names(trade[[1]]), starts_with('int', ignore.case = TRUE)))
+  intrate_diff <<- trade[[1]][,intRates]
+  returns_each <- FxReturn( 1)
+  for (i in 2 : nrow( trade[[ 1 ]]) ){
+    returns_each = returns_each %>% rbind( FxReturn( i - 1 ) )
+  }
+  portfolio_return <- data.table( dailyreturn = 100 * cumsum(diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
+                                                       as.matrix( t ( returns_each ) ) ) ) )
+  portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
+  return (portfolio_return)
+}
