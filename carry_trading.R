@@ -81,12 +81,11 @@ StrategyEvaluation_plot_Carry <- function(f = NA, h = 1){
   for (i in 2 : nrow( trade[[ 1 ]]) ){
     returns_each = returns_each %>% rbind( FxReturn( i - 1 ) )
   }
-  portfolio_return <- data.table( dailyreturn = 100* cumsum(diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
+  portfolio_return <- data.table( dailyreturn = 100*cumsum(diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
                                                               as.matrix( t ( returns_each ) ) ) ) )
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
   return (portfolio_return)
 }
-k = StrategyEvaluation_plot_Carry()
 
 #r_carry = list(StrategyEvaluation_carry()*100,
  #        StrategyEvaluation_carry(c(3,T,F))*100,

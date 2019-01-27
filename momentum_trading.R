@@ -91,13 +91,6 @@ StrategyEvaluation_plot_Momentum <- function(f = 1, h = 1){
   return (portfolio_return)
 }
 
-#r_Mom = list(StrategyEvaluation_Mom()*100,
-             #StrategyEvaluation_Mom(c(3,1,T,F))*100,
-             #StrategyEvaluation_Mom(c(6,1,T,F)) * 100,
-             #StrategyEvaluation_Mom(c(12,1,T,F)) * 100)
-
-#print(r_Mom)
-
 
 
 

@@ -98,8 +98,4 @@ StrategyEvaluation_plot_Volatility <- function(f = 1, h = 1){
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
   return (portfolio_return)
 }
-#r_Vol = list(StrategyEvaluation_Vol()*100,
-#               StrategyEvaluation_Vol(c(3,1,T,F))*100,
-#               StrategyEvaluation_Vol(c(6,1,T,F)) * 100,
-#               StrategyEvaluation_Vol(c(12,1,T,F)) * 100)
-#print(r_Vol)
+

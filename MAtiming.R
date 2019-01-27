@@ -2,7 +2,7 @@
 
 ##############################################################
 #########           2019.01.26.                 ############## 
-######### SECTION4 - MOVING AVERAGE APPLICATION ##############
+######### SECTION5 - MOVING AVERAGE APPLICATION ##############
 #########         © Marcell Kujbus              ##############
 ##############################################################
 
@@ -77,8 +77,8 @@ StrategyEvaluationplot_MA <- function(lag = 10, f = 1, h = 1){
   for (i in 2 : nrow( trade[[ 1 ]]) ){
     returns_each = returns_each %>% rbind( FxReturn( i - 1 ) )
   }
-  portfolio_return <- data.table( dailyreturn = 100 * cumsum(diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
-                                                       as.matrix( t ( returns_each ) ) ) ) )
+  portfolio_return <- data.table( dailyreturn = diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
+                                                       as.matrix( t ( returns_each ) ) ) ) 
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
   return (portfolio_return)
 }
