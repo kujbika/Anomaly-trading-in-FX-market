@@ -16,31 +16,34 @@
 #These portfolios are held for h = 1,3,6,9,12 months.
 
 source("C:/Users/User/Documents/GitHub/Anomaly-trading-in-FX-market/data_handle.R")
-Mom <- function(f = 1, crcy_idx){
+Mom <- function(f = 1, crcy_idx ,with_interest = TRUE){
   #Mom is a function that calculates MOM signals based on f.
   #f denotes months, and I calculate w working days
   #spotinterst means that it can work with a data comes from the function
   #SpotInterest() only
-  tseries = na.omit(SpotInterest(crcy_idx))
+  tseries = na.omit(SpotInterest(crcy_idx ,with_interest))
+  if (with_interest)return (tseries %>%
+                                mutate(Mom = c( rep( NA, f * 21), 
+                                      diff( Excessreturn.V1, lag = f * 21 ) ) ) )
   return (tseries %>%
             mutate(Mom = c( rep( NA, f * 21), 
-                            diff( Excessreturn.V1, lag = f * 21 ) ) ) )
+                            diff( Spot, lag = f * 21 ) ) ) )
 }
-TableMaker_Momentum <- function(f = 1, h = 1){
+TableMaker_Momentum <- function(f = 1, h = 1, with_interest = TRUE){
   #TableMaker is a function that has two outputs as a list:
   #the first is all the data for currencies (Date, Spotprice, intrate differentials, logreturn)
   #the second consisting of just the MOM values.
-  workingtable <- Mom( f, 1)
+  workingtable <- Mom( f = f, crcy_idx = 1 ,with_interest = with_interest)
   for (i in 2:9) workingtable = left_join( workingtable, Mom( f, i ), by = 'Date')
   mom_idx <- c("Date", select_vars(names(workingtable), starts_with('Mom', ignore.case = TRUE)))
   momentum <- workingtable[ -(1 : (f * 21)), mom_idx ]
   return ( list( workingtable[ -(1 : (f * 21)), ], momentum ) )
 }
-Trade_Momentum <- function(f = 1, h = 1){
+Trade_Momentum <- function(f = 1, h = 1, with_interst = TRUE){
   #The trade function has the base data table for currencies as an output,
   #and its second output is the weight allocation for all days.
   #f and h is measured in months
-  workingtable <- TableMaker_Momentum(f, h)
+  workingtable <- TableMaker_Momentum(f, h ,with_interst)
   weights <- WeightAssigner( workingtable[[ 2 ]][ 1, ]) %>%
              slice( rep( row_number( ), (h * 21 ) ) )
   realloc <- seq(1 + h * 21, nrow(workingtable[[ 2 ]]), h * 21)
@@ -61,7 +64,7 @@ StrategyEvaluation_Momentum <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   h <- fh[2]
   with_interest <- fh[3] #boolean variable
   sharpe_bool <- fh[4] #boolean variable
-  trade <- Trade_Momentum(f, h)
+  trade <- Trade_Momentum(f, h, with_interest)
   returns <- select_vars(names(trade[[1]]), starts_with('Exc', ignore.case = TRUE))
   returns_each <- trade[[1]][,returns] %>% mutate_all( funs(if_else(is.na(.), 0, .)))
   portfolio_return <- data.table( dailyreturn = diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%

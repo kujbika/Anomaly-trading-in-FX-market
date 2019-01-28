@@ -35,7 +35,7 @@ Trade_Carry <- function(f = NA, h = 1){
   #The Trade_Carry function has the base data table for currencies as its first output,
   #and its second output is the weight allocation for all days based on Carry.
   #f and h is measured in months
-  workingtable <- TableMaker_Carry(h)
+  workingtable <- TableMaker_Carry(f = f, h = h )
   weights <- WeightAssigner( workingtable[[ 2 ]][ 1, ]) %>%
     slice( rep( row_number( ), (h * 21 ) ) )
   realloc <- seq(1 + h * 21, nrow(workingtable[[ 2 ]]), h * 21)
@@ -47,12 +47,11 @@ Trade_Carry <- function(f = NA, h = 1){
   weights = workingtable[[2]][ , 1] %>% cbind(weights[ 1 : nrow( workingtable[[ 2 ]]), ])
   return ( list( workingtable[[ 1 ]], weights ) )
 }
-StrategyEvaluation_Carry <- function(h0 = c( NA, 1, TRUE, FALSE ) ){
+StrategyEvaluation_Carry <- function(h0 = c( NA, 1, NA , FALSE ) ){
   #this is the actual evaluation of the Carry strategy
   #h is the portfolio reallocation frequency in months(holding period)
   #in this part I assume no transaction costs.
   h <- h0[2]
-  with_interest <- h0[3] #boolean variable
   sharpe_bool <- h0[4] #boolean variable
   trade <- Trade_Carry( h = h )
   returns <- select_vars(names(trade[[1]]), starts_with('Exc', ignore.case = TRUE))

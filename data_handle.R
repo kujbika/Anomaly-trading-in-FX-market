@@ -38,7 +38,7 @@ SpotForwardFilterer <- function(crcy_idx, type){
   if (prime_crc != 'USD' & type_idx == 4) data = data.frame(date, MDat(crcy_idx, 5))
   return ( data.table::data.table( data ) )
 }
-SpotInterest <- function( crcy_idx){
+SpotInterest <- function( crcy_idx, with_interest = TRUE){
   #SpotInterest is a function that will yield a data table with columns
   #Date, Spot price, logreturns based on spot, the interest rate differential,
   #according to excessFXreturn_t = i(country)_t - i(USA)_t - dlog(S_(t+1) )
@@ -52,19 +52,19 @@ SpotInterest <- function( crcy_idx){
   interestt = (q - r)[,7]
   #this multiplying with -1 happens because sometimes the us dollar is the base
   #currency, and sometimes the other.
-  excessret = FxReturn(spotlogret = spot[,3], intrate_diff = interestt)
+  excessret = FxReturn(spotlogret = spot[,3], intrate_diff = interestt ,with_interest)
   return (data.table(spot, interestt, Excessreturn = excessret))
 }
 
-FxReturn <- function(spotlogret, intrate_diff, interest = TRUE){
+FxReturn <- function(spotlogret, intrate_diff, with_interest = TRUE){
   #this function only works with the proper configuration of the table
   #see e.g:StrategyEvaluation function on momentum_trading.R
   nc <- ncol(spotlogret)
   returns_each = data.table(as.matrix(spotlogret[2])+as.matrix(intrate_diff[1]))
   for (rowidx in 2 : length(spotlogret)){
-    spot_return <- spotlogret[rowidx + 1]
+    spot_return <- data.table(spotlogret[rowidx + 1])
     spot_return[is.na(spot_return) == T] = 0
-    if (interest == FALSE) return (rbindlist(list(returns_each,spot_return)))
+    if (with_interest == FALSE) return (rbindlist(list(returns_each,spot_return)))
     intrate_return <- intrate_diff[rowidx]
     intrate_return[is.na(intrate_return) == T] = 0
     asofday <- data.table(as.matrix(spot_return) + as.matrix(intrate_return))
