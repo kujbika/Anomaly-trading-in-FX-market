@@ -25,10 +25,10 @@ TableMaker_Carry <- function(f = NA, h = 1){
   #TableMaker_Carry is a function that has two outputs as a list:
   #the first is all the data for currencies (Date, Spotprice, logreturn, intrate differential) 
   #the second consisting of just the interest rate differentials (against US dollar)
-  workingtable <- na.omit(SpotInterest( 1 ))
-  for (i in 2:9) workingtable = left_join( workingtable, na.omit( SpotInterest( i ) ), by = 'Date')
-  interest_idx <- c("Date", select_vars(names(workingtable), starts_with('inte', ignore.case = TRUE)))
-  interest = workingtable[,interest_idx]
+  workingtable <- na.omit( SpotInterest( crcy_idx = 1 ) )
+  for (i in 2:9) workingtable = left_join( workingtable, na.omit( SpotInterest( crcy_idx = i ) ), by = 'Date')
+  interest_idx <- c( "Date", select_vars( names( workingtable ), starts_with('inte', ignore.case = TRUE)))
+  interest = workingtable[ , interest_idx ]
   return ( list( workingtable, interest ) )
 }
 Trade_Carry <- function(f = NA, h = 1){
@@ -47,22 +47,25 @@ Trade_Carry <- function(f = NA, h = 1){
   weights = workingtable[[2]][ , 1] %>% cbind(weights[ 1 : nrow( workingtable[[ 2 ]]), ])
   return ( list( workingtable[[ 1 ]], weights ) )
 }
-StrategyEvaluation_Carry <- function(h0 = c( NA, 1, NA , FALSE ) ){
+StrategyEvaluation_Carry <- function(h0 = c( NA, 1, TRUE ) ){
   #this is the actual evaluation of the Carry strategy
   #h is the portfolio reallocation frequency in months(holding period)
   #in this part I assume no transaction costs.
   h <- h0[2]
-  sharpe_bool <- h0[4] #boolean variable
+  with_interest = h0[3]
   trade <- Trade_Carry( h = h )
   returns <- select_vars(names(trade[[1]]), starts_with('Exc', ignore.case = TRUE))
+  if (with_interest == FALSE)   returns <- select_vars(names(trade[[1]]), starts_with('log', ignore.case = TRUE))
   returns_each <- trade[[1]][,returns] %>% mutate_all( funs(if_else(is.na(.), 0, .)))
   portfolio_return <- data.table( dailyreturn = diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
                                                        as.matrix( t ( returns_each ) ) ) )
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
   perannum <- sum( portfolio_return$dailyreturn, na.rm = T ) / nrow( portfolio_return ) * 252
-  sharpe <- perannum / ( sd( cumsum(portfolio_return$dailyreturn), na.rm = T) * sqrt( 252 ) )
-  if (sharpe_bool) return (sharpe)
-  return (perannum)
+  sharpe <- PerformanceAnalytics::SharpeRatio.annualized(portfolio_return)
+  model <- lm(portfolio_return$dailyreturn ~ 1)
+  p = as.numeric(lmtest::coeftest(model, vcov = sandwich::NeweyWest(model, verbose = T))[1,4])
+  result <- paste0("p.a=",round(100 * perannum, 2),',sh=',round(sharpe,2),',p=',round(p,3))
+  return (result)
 }
 StrategyEvaluation_plot_Carry <- function(f = NA, h = 1){
   #this is the actual evaluation of the MOM based strategy
@@ -72,8 +75,8 @@ StrategyEvaluation_plot_Carry <- function(f = NA, h = 1){
   trade <- Trade_Carry( h = h )
   returns <- select_vars(names(trade[[1]]), starts_with('Exc', ignore.case = TRUE))
   returns_each <- trade[[1]][,returns] %>% mutate_all( funs(if_else(is.na(.), 0, .)))
-  portfolio_return <- data.table( dailyreturn = 100*cumsum(diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
-                                                              as.matrix( t ( returns_each ) ) ) ) )
+  portfolio_return <- data.table( dailyreturn = 100 * cumsum( diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
+                                                              as.matrix( t ( returns_each ) ) ) ) ) 
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
   return (portfolio_return)
 }

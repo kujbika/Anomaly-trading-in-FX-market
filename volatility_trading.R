@@ -62,17 +62,20 @@ StrategyEvaluation_Volatility <- function(fh = c( 1, 1, TRUE, FALSE ) ){
   #f is the lookback time in months (for calculating sd),
   #whereas h is the portfolio reallocation frequency in months(holding period)
   #in this part I assume no transaction costs.
-  f <- fh[1]; h <- fh[2]; with_interest <- fh[3]; sharpe_bool <- fh[4] 
+  f <- fh[1]; h <- fh[2]; with_interest <- fh[3] 
   trade <- Trade_Volatility(f, h)
   returns <- select_vars(names(trade[[1]]), starts_with('Exc', ignore.case = TRUE))
+  if (with_interest == FALSE)   returns <- select_vars(names(trade[[1]]), starts_with('log', ignore.case = TRUE))
   returns_each <- trade[[1]][,returns] %>% mutate_all( funs(if_else(is.na(.), 0, .)))
   portfolio_return <- data.table( dailyreturn = diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
                                                        as.matrix( t ( returns_each ) ) ) )
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
   perannum <- sum( portfolio_return$dailyreturn, na.rm = T ) / nrow( portfolio_return ) * 252
-  sharpe <- perannum / ( sd( cumsum(portfolio_return$dailyreturn), na.rm = T) * sqrt( 252 ) )
-  if (sharpe_bool) return (sharpe)
-  return (perannum)
+  sharpe <- PerformanceAnalytics::SharpeRatio.annualized(portfolio_return)
+  model <- lm(portfolio_return$dailyreturn ~ 1)
+  p = as.numeric(lmtest::coeftest(model, vcov = sandwich::NeweyWest(model, verbose = T))[1,4])
+  result <- paste0("p.a=",round(100 * perannum, 2),',sh=',round(sharpe,2),',p=',round(p,3))
+  return (result)
 }
 StrategyEvaluation_plot_Volatility <- function(f = 1, h = 1){
   #this is the actual evaluation of the MOM based strategy
@@ -82,8 +85,8 @@ StrategyEvaluation_plot_Volatility <- function(f = 1, h = 1){
   trade <- Trade_Volatility(f, h)
   returns <- select_vars(names(trade[[1]]), starts_with('Exc', ignore.case = TRUE))
   returns_each <- trade[[1]][,returns] %>% mutate_all( funs(if_else(is.na(.), 0, .)))
-  portfolio_return <- data.table( dailyreturn = 100 * cumsum(diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
-                                                       as.matrix( t ( returns_each ) ) ) ) )
+  portfolio_return <- data.table( dailyreturn = 100 * cumsum( diag(as.matrix(trade[[ 2 ]][ , -1 ] ) %*%
+                                                       as.matrix( t ( returns_each ) ) )  ) )
   portfolio_return <- trade[[ 2 ]][ , 1 ] %>% cbind( portfolio_return )
   return (portfolio_return)
 }
