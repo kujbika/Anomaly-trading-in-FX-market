@@ -7,7 +7,7 @@ According to the results, MOM, CARRY do exist in the FX market. An explanation w
 A  more sophisticated method was applied to factor trading: market timing MA trading was used in the long and short positions. 
 The results are convincing. <br>
 The main result of the work is reaching 11.27% per annum with double sorting technique.
-You can find the finished paper here. Please cite at usage.<br>
+You can find the finished paper here (anomalyFX.pdf). Please cite at usage.<br>
 **Keywords: Momentum, Carry, Volatility, Factor sorting,  Moving Average, Dynamic trading, Transaction cost, Anomaly trading, Double sorting**
 ***
 If any question arises, please do not hesitate to contact me on marcellkujbus@gmail.com
